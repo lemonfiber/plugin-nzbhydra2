@@ -41,6 +41,6 @@ fixture = "recordings/nzbhydra2/indexer-search-guarded.json"
 
 [[claim.probe]]
 id      = "indexers"
-request = { method = "GET", path = "/internalapi/config" }
-expect  = { status = 200, json_types = { indexers = "list" } }
+request = { method = "GET", path = "/internalapi/indexerstatuses" }
+expect  = { status = 200, json_array_min = 0 }
 fixture = "recordings/nzbhydra2/indexer-search-indexers.json"

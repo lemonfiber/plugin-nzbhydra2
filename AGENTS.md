@@ -9,21 +9,49 @@
 
 ## What this repo is
 
-A bundled part: NZBHydra2, as the stack lemonfiber ships carries it. The
+NZBHydra2 as a first-party lemonfiber plugin: `plugin.toml` and the adapter that
+speaks the `owner.claim@1` and `indexer.search@1` contracts in front of NZBHydra2.
+The adapter is the Rust crate at the root, built on `lemonfiber-adapter-kit` from
+the core at the commit `Cargo.toml` pins, into the image the `Dockerfile` builds.
+`release.yml` publishes that image from every commit on `main` and from the
+train's tag. The
 [bundle contract](https://github.com/lemonfiber/spec/blob/main/20-architecture/contracts/bundle.md)
-says how the catalogue pins it and how lemonfiber carries it.
+says how the catalogue pins this repository and how lemonfiber carries it.
+`plugin.toml` does not name the adapter yet: the part is one service with the
+in-process adapter its `api` names.
 
 ## The rules you cannot break
 
 - **The plugin id is the service's id** (`ARCH-R266`). The container, the
   configuration directory, the settings and the journal keep their names.
-- **One service, speaking no contract**, while the bundle assembles it. It
-  declares `replaces` naming its own id, which is how it takes the id, the port
-  and the hostname the bundle reserves for it (`ARCH-R222`).
 - **Its claims' recordings sit under `recordings/nzbhydra2/`**, and its starting
   files, where it has any, under `config/nzbhydra2/` (`ARCH-R271`).
 - **Every service declares `reaches` and `asks_for`** (`ARCH-R270`).
-- **No Python here.** The reader is spec's `first-party-plugin` workflow's.
-- **The image is NZBHydra2's own**, so this repository is never tagged. Moving
-  the digest means recording every response again against the new image in
-  the same change, and committing the `proofs.json` the checks write.
+- **The reader is spec's `first-party-plugin` workflow's,** and lemonfiber
+  records the recordings itself. There is no Python here.
+- **No `unwrap`, `expect`, `panic` or indexing** outside tests. The lints in
+  `Cargo.toml` are the core's.
+- **The adapter never writes its credential.** lemonfiber mints the
+  administrator's name and password and writes them into the adapter's
+  `upstream.json` as `username` and `password` (`ARCH-R315`, `ARCH-R317`); the
+  adapter reads them for every call and never logs them.
+- **A claim changes nothing NZBHydra2 already holds** (`ARCH-R328`): only an
+  NZBHydra2 with no authentication is guarded, and one guarded for anybody else
+  is answered as theirs.
+- **What NZBHydra2 cannot do is answered `unsupported`** (`ARCH-R334`): it is
+  told about no application and reads from no aggregator.
+- **The core's crates move with the train.** The `rev` in `Cargo.toml` is the
+  core commit `targets.toml` names, the same for every `lemonfiber-*` crate.
+- **Moving NZBHydra2's digest** means recording every response again against the
+  new image in the same change, moving `RELEASE` and `DIGEST` in
+  `src/adapter.rs` with it, and committing the `proofs.json` the checks write.
+
+## Checks
+
+```
+just ci
+```
+
+The gates that need nothing but this tree. The plugin verdict and the
+recordings run in CI; `just recordings` takes the recordings again locally, with
+Docker.

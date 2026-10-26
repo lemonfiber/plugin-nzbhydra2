@@ -26,6 +26,7 @@ reaches     = "the Usenet indexers you configured"
 asks_for    = "Searches several indexers at once and merges what they answer, with the keys you gave it."
 takes_data  = true
 user_mode   = "puid-env"
+native      = "nzbhydra2"
 replaces    = "nzbhydra2"
 
 [[service]]

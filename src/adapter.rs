@@ -17,8 +17,7 @@ pub const UPSTREAM: &str = "NZBHydra2";
 /// The NZBHydra2 release this adapter's recordings were taken from.
 pub const RELEASE: &str = "v8.9.0-ls104";
 
-/// The digest of the image that release's recordings were taken from.
-pub const DIGEST: &str = "sha256:3cdcea6fc97861bb30ef2551884f1c371e08a884c2f75230c7a3a2e14c5f0516";
+include!(concat!(env!("OUT_DIR"), "/fronted.rs"));
 
 /// What this adapter says it is: the contracts it speaks and the release it supports.
 #[must_use]

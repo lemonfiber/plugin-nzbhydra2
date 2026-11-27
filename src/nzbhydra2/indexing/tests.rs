@@ -3,6 +3,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use lemonfiber_fixtures::http::{Answer, Fake};
 use lemonfiber_ports::http::Method;
 use lemonfiber_ports::service::{Failure, IndexerUse, Indexers as _, Limits};
+use lemonfiber_ports::Instant;
 
 use super::super::tests::{nzbhydra2, presented};
 use super::{failed, AccessStat};
@@ -56,8 +57,8 @@ async fn every_indexer_is_answered_with_its_use_over_the_last_day_and_what_it_al
                 failed_grabs: 2,
                 rested_until: None,
                 limits: Some(limits),
-                searched_from: Some(at(1_792_900_000) - DAY),
-                grabbed_from: Some(at(1_792_890_000) - DAY),
+                searched_from: Instant::dated(at(1_792_900_000) - DAY),
+                grabbed_from: Instant::dated(at(1_792_890_000) - DAY),
             },
             IndexerUse {
                 name: "rested".to_owned(),
@@ -66,7 +67,7 @@ async fn every_indexer_is_answered_with_its_use_over_the_last_day_and_what_it_al
                 failed_queries: 3,
                 grabs: 0,
                 failed_grabs: 0,
-                rested_until: Some("2030-01-01T00:00:00Z".to_owned()),
+                rested_until: Some(Instant::from_seconds(1_893_456_000)),
                 limits: None,
                 searched_from: None,
                 grabbed_from: None,
@@ -78,7 +79,7 @@ async fn every_indexer_is_answered_with_its_use_over_the_last_day_and_what_it_al
                 failed_queries: 0,
                 grabs: 0,
                 failed_grabs: 0,
-                rested_until: Some("2030-01-01T00:00:00Z".to_owned()),
+                rested_until: Some(Instant::from_seconds(1_893_456_000)),
                 limits: None,
                 searched_from: None,
                 grabbed_from: None,

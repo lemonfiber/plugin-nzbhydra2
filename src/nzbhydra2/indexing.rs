@@ -7,8 +7,9 @@ use async_trait::async_trait;
 use lemonfiber_ports::http::Method;
 use lemonfiber_ports::service::{
     Aggregator, Aggregators, AppSync, Application, Failure, IndexerUse, Indexers, KnownAggregator,
-    Limits, RegisteredApplication,
+    KnownSolver, Limits, RegisteredApplication, SolverAt, Solvers,
 };
+use lemonfiber_ports::Instant;
 use serde::Deserialize;
 
 use super::{Nzbhydra2, SERVICE};
@@ -26,6 +27,8 @@ const NO_APPLICATIONS: &str =
     "NZBHydra2 is searched by applications and is told about none of them";
 
 const NO_AGGREGATORS: &str = "NZBHydra2 searches its indexers itself and reads from no aggregator";
+
+const NO_SOLVERS: &str = "NZBHydra2 fetches its indexers directly and through no challenge solver";
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -90,8 +93,8 @@ fn failed(queries: u64, stat: Option<&AccessStat>) -> u64 {
     queries.saturating_sub(answered.min(queries))
 }
 
-fn window_from(reset: Option<f64>) -> Option<SystemTime> {
-    instant::from_seconds(reset?)?.checked_sub(WINDOW)
+fn window_from(reset: Option<f64>) -> Option<Instant> {
+    Instant::dated(instant::from_seconds(reset?)?.checked_sub(WINDOW)?)
 }
 
 fn used(status: Status, measured: &Stats) -> IndexerUse {
@@ -124,7 +127,7 @@ fn used(status: Status, measured: &Stats) -> IndexerUse {
             .then_some(status.disabled_until)
             .flatten()
             .and_then(instant::from_seconds)
-            .and_then(instant::written),
+            .and_then(Instant::dated),
         limits,
         searched_from: window_from(status.api_reset_time),
         grabbed_from: window_from(status.download_reset_time),
@@ -204,6 +207,17 @@ impl Aggregators for Nzbhydra2 {
 
     async fn add_aggregator(&self, _aggregator: &Aggregator) -> Result<(), Failure> {
         Err(unsupported(NO_AGGREGATORS))
+    }
+}
+
+#[async_trait]
+impl Solvers for Nzbhydra2 {
+    async fn proxies(&self) -> Result<Vec<KnownSolver>, Failure> {
+        Err(unsupported(NO_SOLVERS))
+    }
+
+    async fn add_proxy(&self, _solver: &SolverAt) -> Result<(), Failure> {
+        Err(unsupported(NO_SOLVERS))
     }
 }
 

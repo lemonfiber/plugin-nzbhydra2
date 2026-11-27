@@ -117,19 +117,23 @@ async fn what_nzbhydra2_has_no_equivalent_for_is_answered_unsupported() {
     let held = r#"{"held":{"id":"1","base_url":"http://c"}}"#;
     let rekeyed = r#"{"held":{"id":"1","base_url":"http://c"},"key":"k"}"#;
     let aggregator = r#"{"aggregator":{"name":"n","url":"http://a","key":"k"}}"#;
-    for (operation, asked) in [
-        ("register_application", application),
-        ("applications", "{}"),
-        ("test_application", held),
-        ("rekey_application", rekeyed),
-        ("aggregators", "{}"),
-        ("add_aggregator", aggregator),
+    let solver = r#"{"solver":{"name":"s","url":"http://s","protocol":"flaresolverr","tag":"t"}}"#;
+    for (contract, operation, asked) in [
+        ("indexer.search", "register_application", application),
+        ("indexer.search", "applications", "{}"),
+        ("indexer.search", "test_application", held),
+        ("indexer.search", "rekey_application", rekeyed),
+        ("indexer.search", "aggregators", "{}"),
+        ("indexer.search", "add_aggregator", aggregator),
+        ("indexer.search", "proxies", "{}"),
+        ("indexer.search", "add_proxy", solver),
+        ("owner.claim", "claimed_by", "{}"),
     ] {
         let fake = Fake::silent();
         let (status, body) = answered_by(
             &fake,
             "POST",
-            &format!("/lemonfiber/indexer.search/v1/{operation}"),
+            &format!("/lemonfiber/{contract}/v1/{operation}"),
             Some(&key),
             asked,
         )

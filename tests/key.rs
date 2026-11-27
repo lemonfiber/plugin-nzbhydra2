@@ -1,5 +1,6 @@
-//! NZBHydra2's Newznab API key is the one lemonfiber mints, written into its starting
-//! `nzbhydra.yml` and handed to no adapter.
+//! NZBHydra2 starts guarded for the administrator lemonfiber mints, and its Newznab API
+//! key is the one lemonfiber mints, both written into its starting `nzbhydra.yml`; the
+//! key is handed to no adapter.
 
 use toml::{Table, Value};
 
@@ -32,15 +33,55 @@ fn text<'a>(table: &'a Table, key: &str) -> &'a str {
     table.get(key).and_then(Value::as_str).unwrap_or_default()
 }
 
+/// Every part of NZBHydra2 the minted administrator alone may reach, as the adapter's
+/// claim guards it.
+const RESTRICTED: [&str; 5] = [
+    "restrictAdmin",
+    "restrictDetailsDl",
+    "restrictIndexerSelection",
+    "restrictSearch",
+    "restrictStats",
+];
+
+fn starting_lines() -> Vec<String> {
+    read(STARTING).lines().map(str::to_owned).collect()
+}
+
+fn holds(line: &str) -> bool {
+    starting_lines().iter().any(|held| held == line)
+}
+
 #[test]
 fn the_starting_settings_hold_the_minted_key_as_nzbhydra2s_api_key_and_nothing_else_of_it() {
     let starting = read(STARTING);
     let placeholder = format!("{{{{secret:{KEY}}}}}");
     assert_eq!(starting.matches(&placeholder).count(), 1);
-    assert!(starting
-        .lines()
-        .any(|line| line == format!("  apiKey: \"{placeholder}\"")));
-    assert_eq!(starting.matches("{{").count(), 1);
+    assert!(holds(&format!("  apiKey: \"{placeholder}\"")));
+    assert_eq!(starting.matches("{{").count(), 3);
+}
+
+#[test]
+fn nzbhydra2_starts_guarded_for_the_minted_administrator_alone() {
+    assert!(holds("  authType: \"BASIC\""));
+    for restricted in RESTRICTED {
+        assert!(holds(&format!("  {restricted}: true")), "{restricted}");
+    }
+    assert!(holds("      username: \"{{secret:admin-username}}\""));
+    assert!(holds(
+        "      password: \"{bcrypt}{{secret:admin-password|bcrypt}}\""
+    ));
+    for right in [
+        "maySeeAdmin",
+        "maySeeDetailsDl",
+        "maySeeStats",
+        "showIndexerSelection",
+    ] {
+        assert!(
+            holds(&format!("      {right}: true")) || holds(&format!("    - {right}: true")),
+            "{right}"
+        );
+    }
+    assert_eq!(read(STARTING).matches("username:").count(), 1);
 }
 
 #[test]

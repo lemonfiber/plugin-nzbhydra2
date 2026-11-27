@@ -18,7 +18,10 @@ It claims a fresh NZBHydra2 by turning authentication on for the administrator
 lemonfiber mints, and reads which indexers it searches and how hard each was
 used. lemonfiber reaches NZBHydra2 through this adapter alone. lemonfiber mints
 the administrator's name and password and writes them into the adapter's
-`upstream.json`, and the adapter's claim makes NZBHydra2 ask for them.
+`upstream.json`, and the adapter's claim makes NZBHydra2 ask for them. It mints
+the key NZBHydra2 answers its Newznab API to and writes it into NZBHydra2's
+starting `nzbhydra.yml`, so a curator lemonfiber tells about NZBHydra2 reads it
+with that key.
 
 ## What is here
 
@@ -26,6 +29,7 @@ the administrator's name and password and writes them into the adapter's
 | --- | --- |
 | `plugin.toml` | The part's manifest |
 | `recordings/nzbhydra2/` | The responses its proofs are held to |
+| `config/nzbhydra2/` | NZBHydra2's starting `nzbhydra.yml`: the pinned image's own defaults, holding the key lemonfiber mints |
 | `src/` | The adapter |
 | `conformance/owner.claim@1/` | The adapter's answer to each conformance case, in front of the pinned NZBHydra2 |
 | `conformance/indexer.search@1/` | The adapter's answer to each conformance case, in front of the pinned NZBHydra2 |

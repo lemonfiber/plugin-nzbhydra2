@@ -77,3 +77,17 @@ nothing would be handing those keys to every device that can reach it.
 """
 request = { method = "GET", path = "/internalapi/config" }
 expect  = { status = 401, body_starts_with = "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401" }
+
+[[proof]]
+id      = "nzbhydra2.keyed"
+service = "nzbhydra2"
+title   = "NZBHydra2 searches for nobody presenting no key"
+fixture = "recordings/nzbhydra2/search-keyed.json"
+why     = """
+NZBHydra2's Newznab API searches every indexer it holds, with their keys, and
+hands out what they find. lemonfiber mints the key it answers to and writes it
+into the starting nzbhydra.yml, so a search asked presenting no key has to be
+refused by the pinned image.
+"""
+request = { method = "GET", path = "/api?t=search&q=lemonfiber" }
+expect  = { status = 200, body_starts_with = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<error xmlns:atom=\"http://www.w3.org/2005/Atom\"  xmlns:newznab=\"http://www.newznab.com/DTD/2010/feeds/attributes/\" code=\"100\" description=\"Wrong api key\"" }

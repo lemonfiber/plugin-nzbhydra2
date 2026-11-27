@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use lemonfiber_fixtures::http::{Answer, Fake};
 use lemonfiber_ports::http::Method;
-use lemonfiber_ports::service::{Failure, Owner, Ownership as _};
+use lemonfiber_ports::service::{Claim, Failure, Owner, Ownership as _};
 
 use super::Nzbhydra2;
 
@@ -167,7 +167,7 @@ async fn an_open_nzbhydra2_is_claimed_for_this_administrator_alone_and_restarted
     ]);
     assert!(matches!(
         nzbhydra2(&fake).claim().await,
-        Ok(Owner::Settling)
+        Ok(Claim::Held(Owner::Settling))
     ));
     assert_eq!(
         asked(&fake),
@@ -263,7 +263,7 @@ async fn a_claim_already_saved_for_this_administrator_is_restarted_again_and_nob
     ]);
     assert!(matches!(
         nzbhydra2(&settling).claim().await,
-        Ok(Owner::Settling)
+        Ok(Claim::Held(Owner::Settling))
     ));
     assert_eq!(
         asked(&settling).last(),
@@ -274,7 +274,10 @@ async fn a_claim_already_saved_for_this_administrator_is_restarted_again_and_nob
         Answer::reply(401, ""),
         Answer::reply(200, UNGUARDED_CONFIG),
     ]);
-    assert!(matches!(nzbhydra2(&held).claim().await, Ok(Owner::Ours)));
+    assert!(matches!(
+        nzbhydra2(&held).claim().await,
+        Ok(Claim::Held(Owner::Ours))
+    ));
     assert_eq!(held.requests().len(), 3);
     let theirs = Fake::in_turn(vec![
         Answer::reply(200, GUARDED),
@@ -283,7 +286,7 @@ async fn a_claim_already_saved_for_this_administrator_is_restarted_again_and_nob
     ]);
     assert!(matches!(
         nzbhydra2(&theirs).claim().await,
-        Ok(Owner::Theirs)
+        Ok(Claim::Held(Owner::Theirs))
     ));
     assert!(asked(&theirs)
         .iter()

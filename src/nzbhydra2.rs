@@ -106,6 +106,7 @@ impl Nzbhydra2 {
             headers,
             body,
             pinned: None,
+            deadline: None,
         }
     }
 

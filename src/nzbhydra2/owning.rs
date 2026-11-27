@@ -3,7 +3,7 @@
 
 use async_trait::async_trait;
 use lemonfiber_ports::http::Method;
-use lemonfiber_ports::service::{Failure, Owner, Ownership};
+use lemonfiber_ports::service::{Claim, Failure, Owner, Ownership};
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -20,6 +20,9 @@ const RESTRICTED: [&str; 5] = [
 ];
 
 const NO_AUTH_SECTION: &str = "NZBHydra2's configuration holds no authentication section";
+
+const OWN_ADMINISTRATOR: &str =
+    "NZBHydra2 is claimed for the administrator lemonfiber minted, against no outside account";
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -96,8 +99,8 @@ impl Ownership for Nzbhydra2 {
         }
     }
 
-    async fn claim(&self) -> Result<Owner, Failure> {
-        match self.owner().await? {
+    async fn claim(&self) -> Result<Claim, Failure> {
+        let held = match self.owner().await? {
             Owner::Open => {
                 let unguarded = self.configuration(None).await?;
                 let config: Value = self
@@ -105,13 +108,21 @@ impl Ownership for Nzbhydra2 {
                     .decode(&unguarded, "NZBHydra2's configuration could not be read")?;
                 self.guard(config).await?;
                 self.restart().await?;
-                Ok(Owner::Settling)
+                Owner::Settling
             }
             Owner::Settling => {
                 self.restart().await?;
-                Ok(Owner::Settling)
+                Owner::Settling
             }
-            held => Ok(held),
-        }
+            held => held,
+        };
+        Ok(Claim::Held(held))
+    }
+
+    async fn claimed_by(&self) -> Result<Option<String>, Failure> {
+        Err(Failure::Unsupported {
+            service: super::SERVICE.to_owned(),
+            detail: OWN_ADMINISTRATOR.to_owned(),
+        })
     }
 }

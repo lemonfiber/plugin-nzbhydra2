@@ -35,12 +35,16 @@ it, and the conformance recordings under `conformance/` are the adapter's answer
   administrator's name and password and writes them into the adapter's
   `upstream.json` as `username` and `password` (`ARCH-R315`, `ARCH-R317`); the
   adapter reads them for every call and never logs them.
-- **NZBHydra2's API key is lemonfiber's.** lemonfiber mints `api-key` and writes
-  it into `config/nzbhydra2/nzbhydra.yml`, the pinned image's own
-  `/defaults/nzbhydra.yml` with `apiKey` set to `{{secret:api-key}}`, before
-  NZBHydra2 first starts (`ARCH-R316`). NZBHydra2 reads no key from its
-  environment, and a partial `nzbhydra.yml` leaves it failing every request. The
-  adapter is not handed the key.
+- **NZBHydra2 is never reachable unguarded while it holds a credential.**
+  `config/nzbhydra2/nzbhydra.yml` is the pinned image's own
+  `/defaults/nzbhydra.yml` with `authType` `BASIC`, every `restrict*` flag on,
+  one user of `{{secret:admin-username}}` and
+  `{bcrypt}{{secret:admin-password|bcrypt}}` with the rights the claim's guard
+  writes, and `apiKey` set to `{{secret:api-key}}`. lemonfiber writes it before
+  NZBHydra2 first starts and only where no file is there yet (`ARCH-R316`,
+  `ARCH-R406`). NZBHydra2 reads no key from its environment, and a partial
+  `nzbhydra.yml` leaves it failing every request. The adapter is not handed the
+  API key.
 - **A claim changes nothing NZBHydra2 already holds** (`ARCH-R328`): only an
   NZBHydra2 with no authentication is guarded, and one guarded for anybody else
   is answered as theirs.
@@ -50,7 +54,8 @@ it, and the conformance recordings under `conformance/` are the adapter's answer
   core commit `targets.toml` names, the same for every `lemonfiber-*` crate.
 - **Moving NZBHydra2's digest** means recording every response again against the
   new image in the same change, taking `config/nzbhydra2/nzbhydra.yml` again from
-  the new image's `/defaults/nzbhydra.yml` with only `apiKey` set, moving its
+  the new image's `/defaults/nzbhydra.yml` with only the authentication and
+  `apiKey` above set, moving its
   `tag` with it (`build.rs` reads `RELEASE` and `DIGEST` from `plugin.toml`,
   their one home), and committing the `proofs.json` the checks write.
 

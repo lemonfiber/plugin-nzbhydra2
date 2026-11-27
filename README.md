@@ -14,14 +14,15 @@ this repository holds, which speaks lemonfiber's `owner.claim` and
 `indexer.search` contracts in front of NZBHydra2: a Rust crate built on the
 core's adapter kit, into the image `ghcr.io/lemonfiber/nzbhydra2-adapter`,
 published from every commit on `main` and from each tag the release train cuts.
-It claims a fresh NZBHydra2 by turning authentication on for the administrator
-lemonfiber mints, and reads which indexers it searches and how hard each was
-used. lemonfiber reaches NZBHydra2 through this adapter alone. lemonfiber mints
-the administrator's name and password and writes them into the adapter's
-`upstream.json`, and the adapter's claim makes NZBHydra2 ask for them. It mints
-the key NZBHydra2 answers its Newznab API to and writes it into NZBHydra2's
-starting `nzbhydra.yml`, so a curator lemonfiber tells about NZBHydra2 reads it
-with that key.
+It reads which indexers NZBHydra2 searches and how hard each was used, and
+lemonfiber reaches NZBHydra2 through this adapter alone. lemonfiber mints the
+administrator's name and password and the key NZBHydra2 answers its Newznab API
+to, and writes all three into NZBHydra2's starting `nzbhydra.yml`, so NZBHydra2
+asks for that administrator on every page from its first start and a curator
+lemonfiber tells about NZBHydra2 reads it with that key. The administrator is
+also written into the adapter's `upstream.json`. An NZBHydra2 that started
+without authentication, as one moved in place may have, is guarded by the
+adapter's claim.
 
 ## What is here
 
@@ -29,7 +30,7 @@ with that key.
 | --- | --- |
 | `plugin.toml` | The part's manifest |
 | `recordings/nzbhydra2/` | The responses its proofs are held to |
-| `config/nzbhydra2/` | NZBHydra2's starting `nzbhydra.yml`: the pinned image's own defaults, holding the key lemonfiber mints |
+| `config/nzbhydra2/` | NZBHydra2's starting `nzbhydra.yml`: the pinned image's own defaults, guarded for the administrator lemonfiber mints and holding the key it mints |
 | `src/` | The adapter |
 | `conformance/owner.claim@1/` | The adapter's answer to each conformance case, in front of the pinned NZBHydra2 |
 | `conformance/indexer.search@1/` | The adapter's answer to each conformance case, in front of the pinned NZBHydra2 |

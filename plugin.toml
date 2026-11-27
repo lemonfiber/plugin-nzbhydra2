@@ -66,13 +66,14 @@ why    = "The password of the administrator NZBHydra2 is claimed for, which the 
 [[proof]]
 id      = "nzbhydra2.guarded"
 service = "nzbhydra2"
-title   = "A claimed NZBHydra2 shows its configuration to nobody presenting nothing"
+title   = "NZBHydra2 shows its configuration to nobody presenting nothing"
 fixture = "recordings/nzbhydra2/config-guarded.json"
 why     = """
-NZBHydra2's configuration holds every indexer's key and the administrator it was
-claimed for. Once claimed, only the adapter reads it, signed in as that
-administrator, so a NZBHydra2 that answered it to a caller presenting nothing
-would be handing those keys to every device that can reach it.
+NZBHydra2's configuration holds every indexer's key, the key its Newznab API
+answers to and the administrator it is guarded for. It starts guarded for the
+administrator lemonfiber minted, and only the adapter reads it, signed in as
+that administrator, so a NZBHydra2 that answered it to a caller presenting
+nothing would be handing those keys to every device that can reach it.
 """
 request = { method = "GET", path = "/internalapi/config" }
 expect  = { status = 401, body_starts_with = "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401" }
